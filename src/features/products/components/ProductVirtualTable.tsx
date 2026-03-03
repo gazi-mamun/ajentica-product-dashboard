@@ -26,6 +26,7 @@ function ProductVirtualTableComponent({
   onToggleSelected,
 }: ProductVirtualTableProps) {
   const bodyRef = useRef<HTMLDivElement | null>(null);
+  // Align virtual row coordinates to this block's document offset.
   const scrollMargin = bodyRef.current?.offsetTop ?? 0;
 
   const rowVirtualizer = useWindowVirtualizer({
@@ -40,6 +41,7 @@ function ProductVirtualTableComponent({
   return (
     <div className="overflow-x-auto">
       <div className="min-w-190">
+        {/* Fixed header remains always visible while body rows are virtualized below. */}
         <div
           className="grid border-b border-strong"
           style={{ gridTemplateColumns: COL_TEMPLATE }}
@@ -76,6 +78,7 @@ function ProductVirtualTableComponent({
             style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
           >
             {virtualRows.map((virtualRow) => {
+              // Render only rows inside/near viewport; lookup state from memoized ID sets.
               const product = products[virtualRow.index];
               const selected = selectedSet.has(product.id);
               const favorited = favoriteSet.has(product.id);

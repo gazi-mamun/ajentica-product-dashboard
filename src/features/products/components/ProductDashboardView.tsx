@@ -51,6 +51,7 @@ export function ProductDashboardView({
   } = useProductDashboardState(products);
 
   useEffect(() => {
+    // Show a lightweight "back to top" affordance only after meaningful scroll depth.
     const onScroll = () => {
       setShowScrollTop(window.scrollY > 420);
     };
@@ -76,6 +77,7 @@ export function ProductDashboardView({
       />
 
       <main className="screen-layout flex flex-col gap-3.5 px-6 py-5.5">
+        {/* Category discovery controls */}
         <div className="flex flex-wrap gap-1.75">
           <button
             type="button"
@@ -115,6 +117,7 @@ export function ProductDashboardView({
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 rounded-[13px] border border-soft bg-panel p-[13px_16px]">
+          {/* Search + sort + view mode controls intentionally stay non-sticky to preserve product viewport space. */}
           <div className="relative min-w-55 flex-1">
             <span className="pointer-events-none absolute left-2.75 top-1/2 -translate-y-1/2 text-[13px] text-dim">
               <FiSearch className="h-3.5 w-3.5" />
@@ -199,6 +202,7 @@ export function ProductDashboardView({
 
           {!isLoading && !isError && (
             <div>
+              {/* Render mode switch: both grid and table are virtualized for large datasets. */}
               {viewMode === "grid" ? (
                 <ProductVirtualGrid
                   products={filtered}
@@ -229,15 +233,18 @@ export function ProductDashboardView({
       </main>
 
       {showScrollTop && (
-        <button
-          type="button"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed bottom-4 right-4 z-120 inline-flex h-11 w-11 items-center justify-center rounded-full border border-info-soft bg-panel text-info shadow-brand-soft backdrop-blur-[6px] transition-all hover:-translate-y-0.5 cursor-pointer"
-          aria-label="Scroll to top"
-          title="Scroll to top"
-        >
-          <FiArrowUp className="h-4.5 w-4.5" />
-        </button>
+        <>
+          {/* UX fallback to quickly reach top controls without making filter bar sticky. */}
+          <button
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="fixed bottom-4 right-4 z-120 inline-flex h-11 w-11 items-center justify-center rounded-full border border-info-soft bg-panel text-info shadow-brand-soft backdrop-blur-[6px] transition-all hover:-translate-y-0.5 cursor-pointer"
+            aria-label="Scroll to top"
+            title="Scroll to top"
+          >
+            <FiArrowUp className="h-4.5 w-4.5" />
+          </button>
+        </>
       )}
     </div>
   );

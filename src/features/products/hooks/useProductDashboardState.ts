@@ -32,6 +32,7 @@ function isCategory(value: string): value is Category {
 }
 
 function parseQueryState(searchText: string): DashboardQueryState {
+  // Parse only the URL-driven dashboard controls; everything else stays local/store state.
   const params = new URLSearchParams(searchText);
   const search = params.get("search") ?? DEFAULT_QUERY_STATE.search;
   const categoriesParam = params.get("categories");
@@ -55,6 +56,7 @@ function parseQueryState(searchText: string): DashboardQueryState {
 }
 
 export function useProductDashboardState(products: Product[]) {
+  // Hydrate dashboard controls from URL so refresh/share/back-forward preserve UI context.
   const initialQueryState =
     typeof window === "undefined"
       ? DEFAULT_QUERY_STATE
@@ -74,6 +76,7 @@ export function useProductDashboardState(products: Product[]) {
   const toggleSelected = useFavoritesStore((state) => state.toggleSelected);
   const clearSelected = useFavoritesStore((state) => state.clearSelected);
 
+  // O(1) lookup sets used by filtering and virtual row render paths.
   const favoriteSet = useMemo(() => new Set(favoriteIds), [favoriteIds]);
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
 
@@ -86,6 +89,7 @@ export function useProductDashboardState(products: Product[]) {
   }, [selectedIds.length]);
 
   useEffect(() => {
+    // Keep type-ahead responsive while deferring expensive filter/sort work.
     const timer = window.setTimeout(() => {
       setDebouncedSearch(search);
     }, 250);
@@ -94,6 +98,7 @@ export function useProductDashboardState(products: Product[]) {
   }, [search]);
 
   useEffect(() => {
+    // Sync URL -> state for browser navigation (back/forward).
     const onPopState = () => {
       const next = parseQueryState(window.location.search);
       setSearch(next.search);
@@ -107,6 +112,7 @@ export function useProductDashboardState(products: Product[]) {
   }, []);
 
   useEffect(() => {
+    // Sync state -> URL without creating history entries for every keystroke/toggle.
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     if (categories.length > 0) params.set("categories", categories.join(","));
@@ -120,6 +126,7 @@ export function useProductDashboardState(products: Product[]) {
   }, [search, categories, sortBy, viewMode]);
 
   const catCounts = useMemo<Record<Category, number>>(() => {
+    // Category counters are based on the full fetched dataset, not current filters.
     const counts: Record<Category, number> = {
       Electronics: 0,
       Fashion: 0,
@@ -133,6 +140,7 @@ export function useProductDashboardState(products: Product[]) {
   }, [products]);
 
   const filtered = useMemo(() => {
+    // Single derived pipeline for all discovery controls before virtualization renders rows.
     const query = debouncedSearch.toLowerCase();
     return products
       .filter(

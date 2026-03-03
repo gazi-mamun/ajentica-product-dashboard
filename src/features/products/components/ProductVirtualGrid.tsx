@@ -17,6 +17,7 @@ const COLUMN_GAP = 13;
 const MIN_CARD_WIDTH = 200;
 
 function getColumnCount(width: number): number {
+  // Mirror CSS auto-fill(minmax(200px, 1fr)) behavior while keeping explicit column count.
   return Math.max(
     1,
     Math.floor((width + COLUMN_GAP) / (MIN_CARD_WIDTH + COLUMN_GAP)),
@@ -32,9 +33,11 @@ function ProductVirtualGridComponent({
 }: ProductVirtualGridProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  // Window virtualizer needs the container's page offset to place rows accurately.
   const scrollMargin = containerRef.current?.offsetTop ?? 0;
 
   useEffect(() => {
+    // Columns change with width, so track container resize and recalculate grid math.
     const element = containerRef.current;
     if (!element) return;
 
@@ -62,6 +65,7 @@ function ProductVirtualGridComponent({
   });
 
   useEffect(() => {
+    // Re-measure row heights when data shape or columns change.
     rowVirtualizer.measure();
   }, [rowVirtualizer, columns, products.length]);
 
@@ -74,6 +78,7 @@ function ProductVirtualGridComponent({
         style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
       >
         {rowItems.map((virtualRow) => {
+          // Slice only the products belonging to the current virtualized row.
           const start = virtualRow.index * columns;
           const end = Math.min(start + columns, products.length);
           const rowProducts = products.slice(start, end);

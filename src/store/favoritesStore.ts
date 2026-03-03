@@ -11,6 +11,7 @@ interface FavoritesStoreState {
 }
 
 function toggleId(ids: string[], id: string): string[] {
+  // Persist as arrays for storage reliability; derive Sets only in UI hooks for lookup speed.
   return ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id];
 }
 
@@ -19,6 +20,7 @@ export const useFavoritesStore = create<FavoritesStoreState>()(
     (set) => ({
       favoriteIds: [],
       selectedIds: [],
+      // Idempotent toggles keep caller logic simple across grid/table interactions.
       toggleFavorite: (id: string) =>
         set((state) => ({ favoriteIds: toggleId(state.favoriteIds, id) })),
       toggleSelected: (id: string) =>
