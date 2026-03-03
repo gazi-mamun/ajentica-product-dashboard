@@ -114,6 +114,11 @@ export function ProductDashboardView({
     setPage(1);
   };
 
+  const handlePageChange = (nextPage: number) => {
+    setPage(nextPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen bg-dashboard text-secondary">
       <header className="sticky top-0 z-100 border-b border-header bg-header backdrop-blur-[14px]">
@@ -429,7 +434,7 @@ export function ProductDashboardView({
               totalPages={totalPages}
               totalItems={filtered.length}
               pageSize={PAGE_SIZE}
-              onPageChange={setPage}
+              onPageChange={handlePageChange}
             />
           )}
         </div>
