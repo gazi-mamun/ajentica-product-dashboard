@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import type { Product } from "../types";
 import { GridCard } from "./GridCard";
@@ -23,7 +23,7 @@ function getColumnCount(width: number): number {
   );
 }
 
-export function ProductVirtualGrid({
+function ProductVirtualGridComponent({
   products,
   favoriteSet,
   selectedSet,
@@ -110,3 +110,5 @@ export function ProductVirtualGrid({
     </div>
   );
 }
+
+export const ProductVirtualGrid = memo(ProductVirtualGridComponent);

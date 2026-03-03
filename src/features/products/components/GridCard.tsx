@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { FiCheck, FiStar } from "react-icons/fi";
 import { IoStar } from "react-icons/io5";
 import type { Product } from "../types";
@@ -12,7 +13,7 @@ export interface GridCardProps {
   onFavorite: (id: string) => void;
 }
 
-export function GridCard({
+function GridCardComponent({
   product,
   selected,
   favorited,
@@ -88,3 +89,5 @@ export function GridCard({
     </div>
   );
 }
+
+export const GridCard = memo(GridCardComponent);

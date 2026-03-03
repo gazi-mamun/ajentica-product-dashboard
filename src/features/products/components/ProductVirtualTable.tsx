@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { memo, useRef } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { FiCheck, FiStar } from "react-icons/fi";
 import { IoStar } from "react-icons/io5";
@@ -18,7 +18,7 @@ interface ProductVirtualTableProps {
 const ROW_HEIGHT = 64;
 const COL_TEMPLATE = "40px minmax(260px,1fr) 160px 120px 60px";
 
-export function ProductVirtualTable({
+function ProductVirtualTableComponent({
   products,
   favoriteSet,
   selectedSet,
@@ -39,7 +39,7 @@ export function ProductVirtualTable({
 
   return (
     <div className="overflow-x-auto">
-      <div className="min-w-[760px]">
+      <div className="min-w-190">
         <div
           className="grid border-b border-strong"
           style={{ gridTemplateColumns: COL_TEMPLATE }}
@@ -163,3 +163,5 @@ export function ProductVirtualTable({
     </div>
   );
 }
+
+export const ProductVirtualTable = memo(ProductVirtualTableComponent);
