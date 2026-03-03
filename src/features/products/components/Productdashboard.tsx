@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { FiGrid, FiList, FiPackage, FiSearch, FiStar, FiX } from "react-icons/fi";
+import { Pagination } from "../../../components/Pagination";
 import { useProducts } from "../hooks/useProducts";
 import type { Category, Product } from "../types";
 import { CATEGORIES } from "../types";
@@ -101,17 +102,6 @@ export function ProductDashboard() {
     setSortBy(value);
     setPage(1);
   };
-
-  const paginationItems = Array.from(
-    { length: totalPages },
-    (_, index) => index + 1,
-  )
-    .filter((n) => n === 1 || n === totalPages || Math.abs(n - safePage) <= 2)
-    .reduce<(number | "…")[]>((acc, n, index, arr) => {
-      if (index > 0 && n - (arr[index - 1] as number) > 1) acc.push("…");
-      acc.push(n);
-      return acc;
-    }, []);
 
   return (
     <div className="min-h-screen bg-dashboard text-secondary">
@@ -359,70 +349,13 @@ export function ProductDashboard() {
           )}
 
           {!isLoading && !isError && totalPages > 1 && (
-            <div className="flex flex-wrap items-center justify-between gap-2.5 border-t border-strong px-4.5 py-3.25">
-              <span className="text-[12px] text-dim">
-                Showing {(safePage - 1) * PAGE_SIZE + 1}–
-                {Math.min(safePage * PAGE_SIZE, filtered.length)} of{" "}
-                {filtered.length}
-              </span>
-
-              <div className="flex flex-wrap items-center gap-1.25">
-                <button
-                  type="button"
-                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                  disabled={safePage === 1}
-                  className={cn(
-                    "h-7.5 rounded-[7px] border border-soft bg-surface px-3 text-[12px] font-semibold transition-all cursor-pointer",
-                    safePage === 1
-                      ? "cursor-not-allowed text-dim"
-                      : "text-muted",
-                  )}
-                >
-                  ← Prev
-                </button>
-
-                {paginationItems.map((item, index) =>
-                  item === "…" ? (
-                    <span
-                      key={`ellipsis-${index}`}
-                      className="px-1 text-[12px] text-dim"
-                    >
-                      …
-                    </span>
-                  ) : (
-                    <button
-                      type="button"
-                      key={item}
-                      onClick={() => setPage(item as number)}
-                      className={cn(
-                        "h-7.5 w-7.5 rounded-[7px] border text-[12px] transition-all cursor-pointer",
-                        safePage === item
-                          ? "border-info bg-info-soft font-bold text-info"
-                          : "border-soft bg-surface font-medium text-subtle",
-                      )}
-                    >
-                      {item}
-                    </button>
-                  ),
-                )}
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setPage((prev) => Math.min(totalPages, prev + 1))
-                  }
-                  disabled={safePage === totalPages}
-                  className={cn(
-                    "h-7.5 rounded-[7px] border border-soft bg-surface px-3 text-[12px] font-semibold transition-all cursor-pointer",
-                    safePage === totalPages
-                      ? "cursor-not-allowed text-dim"
-                      : "text-muted",
-                  )}
-                >
-                  Next →
-                </button>
-              </div>
-            </div>
+            <Pagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              totalItems={filtered.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={setPage}
+            />
           )}
         </div>
       </main>
