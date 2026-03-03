@@ -14,15 +14,12 @@ import { useProducts } from "../hooks/useProducts";
 import type { Category, Product } from "../types";
 import { CATEGORIES } from "../types";
 import { CategoryPill } from "../components/CategoryPill";
+import { cn } from "../../../utils/cn";
 
 const PAGE_SIZE = 24;
 
 type SortKey = "title" | "price_asc" | "price_desc";
 type ViewMode = "grid" | "table";
-
-function cn(...parts: Array<string | false | null | undefined>) {
-  return parts.filter(Boolean).join(" ");
-}
 
 function ProductImg({
   src,
