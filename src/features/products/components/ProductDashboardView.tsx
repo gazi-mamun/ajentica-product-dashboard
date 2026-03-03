@@ -28,7 +28,7 @@ export function ProductDashboardView({
     viewMode,
     setViewMode,
     search,
-    category,
+    categories,
     sortBy,
     favoritesOnly,
     selectedOnly,
@@ -79,7 +79,7 @@ export function ProductDashboardView({
             onClick={() => handleCategory("All")}
             className={cn(
               "h-8 rounded-lg border px-3.5 text-[12px] font-bold tracking-[0.04em] transition-all cursor-pointer",
-              category === "All"
+              categories.length === 0
                 ? "border-info bg-brand text-white shadow-brand-soft"
                 : "border-soft bg-surface text-subtle",
             )}
@@ -89,7 +89,7 @@ export function ProductDashboardView({
           </button>
 
           {CATEGORIES.map((item) => {
-            const active = category === item;
+            const active = categories.includes(item);
             return (
               <button
                 type="button"
