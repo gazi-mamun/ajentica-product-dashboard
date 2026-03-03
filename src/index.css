@@ -246,7 +246,7 @@ body {
   }
 
   .bg-skeleton {
-    background-color: #0d1a2e;
+    background-color: rgb(100 116 139 / 45%);
   }
 
   .bg-info-soft {
