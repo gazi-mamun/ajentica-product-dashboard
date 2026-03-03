@@ -3,8 +3,6 @@ import { useFavoritesStore } from "../../../store/favoritesStore";
 import { CATEGORIES } from "../types";
 import type { Category, Product } from "../types";
 
-const PAGE_SIZE = 24;
-
 type SortKey = "title" | "price_asc" | "price_desc";
 type ViewMode = "grid" | "table";
 type DashboardQueryState = {
@@ -12,7 +10,6 @@ type DashboardQueryState = {
   categories: Category[];
   sortBy: SortKey;
   viewMode: ViewMode;
-  page: number;
 };
 
 const DEFAULT_QUERY_STATE: DashboardQueryState = {
@@ -20,7 +17,6 @@ const DEFAULT_QUERY_STATE: DashboardQueryState = {
   categories: [],
   sortBy: "title",
   viewMode: "grid",
-  page: 1,
 };
 
 function isSortKey(value: string): value is SortKey {
@@ -41,7 +37,6 @@ function parseQueryState(searchText: string): DashboardQueryState {
   const categoriesParam = params.get("categories");
   const sortByParam = params.get("sortBy");
   const viewModeParam = params.get("viewMode");
-  const pageParam = Number(params.get("page"));
   const parsedCategories = (categoriesParam ?? "")
     .split(",")
     .filter(Boolean)
@@ -56,9 +51,6 @@ function parseQueryState(searchText: string): DashboardQueryState {
     viewMode: viewModeParam && isViewMode(viewModeParam)
       ? viewModeParam
       : DEFAULT_QUERY_STATE.viewMode,
-    page: Number.isInteger(pageParam) && pageParam > 0
-      ? pageParam
-      : DEFAULT_QUERY_STATE.page,
   };
 }
 
@@ -73,7 +65,6 @@ export function useProductDashboardState(products: Product[]) {
   const [debouncedSearch, setDebouncedSearch] = useState(initialQueryState.search);
   const [categories, setCategories] = useState<Category[]>(initialQueryState.categories);
   const [sortBy, setSortBy] = useState<SortKey>(initialQueryState.sortBy);
-  const [page, setPage] = useState(initialQueryState.page);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [selectedOnly, setSelectedOnly] = useState(false);
 
@@ -109,7 +100,6 @@ export function useProductDashboardState(products: Product[]) {
       setCategories(next.categories);
       setSortBy(next.sortBy);
       setViewMode(next.viewMode);
-      setPage(next.page);
     };
 
     window.addEventListener("popstate", onPopState);
@@ -122,13 +112,12 @@ export function useProductDashboardState(products: Product[]) {
     if (categories.length > 0) params.set("categories", categories.join(","));
     if (sortBy !== "title") params.set("sortBy", sortBy);
     if (viewMode !== "grid") params.set("viewMode", viewMode);
-    if (page > 1) params.set("page", String(page));
     const nextQuery = params.toString();
     const nextUrl = nextQuery
       ? `${window.location.pathname}?${nextQuery}`
       : window.location.pathname;
     window.history.replaceState(null, "", nextUrl);
-  }, [search, categories, sortBy, viewMode, page]);
+  }, [search, categories, sortBy, viewMode]);
 
   const catCounts = useMemo<Record<Category, number>>(() => {
     const counts: Record<Category, number> = {
@@ -170,22 +159,13 @@ export function useProductDashboardState(products: Product[]) {
     selectedSet,
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const paginated = filtered.slice(
-    (safePage - 1) * PAGE_SIZE,
-    safePage * PAGE_SIZE,
-  );
-
   const handleSearch = (value: string) => {
     setSearch(value);
-    setPage(1);
   };
 
   const handleCategory = (value: Category | "All") => {
     if (value === "All") {
       setCategories([]);
-      setPage(1);
       return;
     }
 
@@ -194,26 +174,18 @@ export function useProductDashboardState(products: Product[]) {
         ? current.filter((item) => item !== value)
         : [...current, value],
     );
-    setPage(1);
   };
 
   const handleSort = (value: SortKey) => {
     setSortBy(value);
-    setPage(1);
   };
 
   const toggleFavoritesOnly = () => {
     setFavoritesOnly((prev) => !prev);
-    setPage(1);
   };
 
   const toggleSelectedOnly = () => {
     setSelectedOnly((prev) => !prev);
-    setPage(1);
-  };
-
-  const handlePageChange = (nextPage: number) => {
-    setPage(nextPage);
   };
 
   return {
@@ -230,10 +202,6 @@ export function useProductDashboardState(products: Product[]) {
     selectedSet,
     catCounts,
     filtered,
-    totalPages,
-    safePage,
-    paginated,
-    pageSize: PAGE_SIZE,
     handleSearch,
     handleCategory,
     handleSort,
@@ -242,6 +210,5 @@ export function useProductDashboardState(products: Product[]) {
     clearSelected,
     toggleFavoritesOnly,
     toggleSelectedOnly,
-    handlePageChange,
   };
 }

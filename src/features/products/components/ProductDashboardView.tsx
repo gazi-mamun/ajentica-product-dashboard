@@ -1,5 +1,4 @@
 import { FiGrid, FiList, FiSearch, FiStar, FiX } from "react-icons/fi";
-import { Pagination } from "../../../components/Pagination";
 import { CATEGORIES } from "../types";
 import type { Product } from "../types";
 import { DashboardHeader } from "../components/DashboardHeader";
@@ -38,10 +37,6 @@ export function ProductDashboardView({
     selectedSet,
     catCounts,
     filtered,
-    totalPages,
-    safePage,
-    paginated,
-    pageSize,
     handleSearch,
     handleCategory,
     handleSort,
@@ -50,13 +45,7 @@ export function ProductDashboardView({
     clearSelected,
     toggleFavoritesOnly,
     toggleSelectedOnly,
-    handlePageChange,
   } = useProductDashboardState(products);
-
-  const handlePageChangeWithScroll = (nextPage: number) => {
-    handlePageChange(nextPage);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
 
   return (
     <div className="min-h-screen bg-dashboard text-secondary">
@@ -184,9 +173,6 @@ export function ProductDashboardView({
               </span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-[11px] text-dim">
-                Page {safePage} / {totalPages}
-              </span>
               <span className="text-[10px] font-bold uppercase tracking-[0.07em] text-info">
                 {viewMode === "grid" ? "Grid" : "Table"}
               </span>
@@ -201,7 +187,7 @@ export function ProductDashboardView({
             <div className={viewMode === "grid" ? "p-4" : ""}>
               {viewMode === "grid" ? (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3.25">
-                  {paginated.map((product) => (
+                  {filtered.map((product) => (
                     <GridCard
                       key={product.id}
                       product={product}
@@ -245,7 +231,7 @@ export function ProductDashboardView({
                       </tr>
                     </thead>
                     <tbody>
-                      {paginated.map((product) => (
+                      {filtered.map((product) => (
                         <TableRow
                           key={product.id}
                           product={product}
@@ -267,16 +253,6 @@ export function ProductDashboardView({
                 />
               )}
             </div>
-          )}
-
-          {!isLoading && !isError && totalPages > 1 && (
-            <Pagination
-              currentPage={safePage}
-              totalPages={totalPages}
-              totalItems={filtered.length}
-              pageSize={pageSize}
-              onPageChange={handlePageChangeWithScroll}
-            />
           )}
         </div>
       </main>
