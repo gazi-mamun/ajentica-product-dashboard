@@ -1,4 +1,5 @@
-import { FiGrid, FiList, FiSearch, FiX } from "react-icons/fi";
+import { useEffect, useState } from "react";
+import { FiArrowUp, FiGrid, FiList, FiSearch, FiX } from "react-icons/fi";
 import { CATEGORIES } from "../types";
 import type { Product } from "../types";
 import { DashboardHeader } from "../components/DashboardHeader";
@@ -23,6 +24,8 @@ export function ProductDashboardView({
   isError,
   onRetry,
 }: ProductDashboardViewProps) {
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
   const {
     viewMode,
     setViewMode,
@@ -47,8 +50,19 @@ export function ProductDashboardView({
     toggleSelectedOnly,
   } = useProductDashboardState(products);
 
+  useEffect(() => {
+    const onScroll = () => {
+      setShowScrollTop(window.scrollY > 420);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-dashboard text-secondary">
+    <div className="min-h-screen bg-dashboard text-secondary pb-8">
       <DashboardHeader
         productsCount={products.length}
         isLoading={isLoading}
@@ -213,6 +227,18 @@ export function ProductDashboardView({
           )}
         </div>
       </main>
+
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="fixed bottom-4 right-4 z-120 inline-flex h-11 w-11 items-center justify-center rounded-full border border-info-soft bg-panel text-info shadow-brand-soft backdrop-blur-[6px] transition-all hover:-translate-y-0.5 cursor-pointer"
+          aria-label="Scroll to top"
+          title="Scroll to top"
+        >
+          <FiArrowUp className="h-4.5 w-4.5" />
+        </button>
+      )}
     </div>
   );
 }
