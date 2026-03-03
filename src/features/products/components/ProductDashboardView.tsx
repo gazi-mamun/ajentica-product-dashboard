@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FiGrid, FiList, FiPackage, FiSearch, FiStar, FiX } from "react-icons/fi";
 import { Pagination } from "../../../components/Pagination";
 import { CATEGORIES } from "../types";
@@ -8,6 +8,7 @@ import { ErrorState } from "../components/ErrorState";
 import { GridCard } from "../components/GridCard";
 import { LoadingState } from "../components/LoadingState";
 import { TableRow } from "../components/TableRow";
+import { useFavoritesStore } from "../../../store/favoritesStore";
 import { cn } from "../../../utils/cn";
 
 const PAGE_SIZE = 24;
@@ -33,26 +34,23 @@ export function ProductDashboardView({
   const [category, setCategory] = useState<Category | "All">("All");
   const [sortBy, setSortBy] = useState<SortKey>("title");
   const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [selectedOnly, setSelectedOnly] = useState(false);
+  const favoriteIds = useFavoritesStore((state) => state.favoriteIds);
+  const selectedIds = useFavoritesStore((state) => state.selectedIds);
+  const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
+  const toggleSelected = useFavoritesStore((state) => state.toggleSelected);
+  const clearSelected = useFavoritesStore((state) => state.clearSelected);
+  const favoriteSet = useMemo(() => new Set(favoriteIds), [favoriteIds]);
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
 
-  const toggleSelect = (id: string) => {
-    setSelected((state) => {
-      const next = new Set(state);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
+  useEffect(() => {
+    if (favoriteIds.length === 0) setFavoritesOnly(false);
+  }, [favoriteIds.length]);
 
-  const toggleFavorite = (id: string) => {
-    setFavorites((state) => {
-      const next = new Set(state);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
+  useEffect(() => {
+    if (selectedIds.length === 0) setSelectedOnly(false);
+  }, [selectedIds.length]);
 
   const catCounts = useMemo<Record<Category, number>>(() => {
     const counts: Record<Category, number> = {
@@ -72,6 +70,8 @@ export function ProductDashboardView({
     return products
       .filter(
         (product) =>
+          (!favoritesOnly || favoriteSet.has(product.id)) &&
+          (!selectedOnly || selectedSet.has(product.id)) &&
           (category === "All" || product.category === category) &&
           (product.title.toLowerCase().includes(query) ||
             product.id.includes(query)),
@@ -81,7 +81,16 @@ export function ProductDashboardView({
         if (sortBy === "price_asc") return a.price - b.price;
         return b.price - a.price;
       });
-  }, [products, search, category, sortBy]);
+  }, [
+    products,
+    search,
+    category,
+    sortBy,
+    favoritesOnly,
+    selectedOnly,
+    favoriteSet,
+    selectedSet,
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -131,28 +140,92 @@ export function ProductDashboardView({
               { label: "Total", val: filtered.length, color: "text-info" },
               {
                 label: "Favorites",
-                val: favorites.size,
+                val: favoriteIds.length,
                 color: "text-warning",
               },
-              { label: "Selected", val: selected.size, color: "text-selected" },
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-soft bg-surface px-3 py-1"
-              >
-                <span
+              { label: "Selected", val: selectedIds.length, color: "text-selected" },
+            ].map((stat) =>
+              stat.label === "Favorites" ? (
+                <button
+                  type="button"
+                  key={stat.label}
+                  disabled={favoriteIds.length === 0}
+                  onClick={() => {
+                    setFavoritesOnly((prev) => !prev);
+                    setPage(1);
+                  }}
                   className={cn(
-                    "font-mono text-[15px] font-extrabold",
-                    stat.color,
+                    "flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-1",
+                    favoritesOnly
+                      ? "border-warning-soft bg-warning-soft"
+                      : "border-soft bg-surface",
+                    favoriteIds.length === 0
+                      ? "cursor-not-allowed opacity-60"
+                      : "cursor-pointer",
                   )}
                 >
-                  {stat.val}
-                </span>
-                <span className="text-[10px] font-medium text-muted">
-                  {stat.label}
-                </span>
-              </div>
-            ))}
+                  <span
+                    className={cn(
+                      "font-mono text-[15px] font-extrabold",
+                      stat.color,
+                    )}
+                  >
+                    {stat.val}
+                  </span>
+                  <span className="text-[10px] font-medium text-muted">
+                    {stat.label}
+                  </span>
+                </button>
+              ) : stat.label === "Selected" ? (
+                <button
+                  type="button"
+                  key={stat.label}
+                  disabled={selectedIds.length === 0}
+                  onClick={() => {
+                    setSelectedOnly((prev) => !prev);
+                    setPage(1);
+                  }}
+                  className={cn(
+                    "flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-1",
+                    selectedOnly
+                      ? "border-info-soft bg-info-soft"
+                      : "border-soft bg-surface",
+                    selectedIds.length === 0
+                      ? "cursor-not-allowed opacity-60"
+                      : "cursor-pointer",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "font-mono text-[15px] font-extrabold",
+                      stat.color,
+                    )}
+                  >
+                    {stat.val}
+                  </span>
+                  <span className="text-[10px] font-medium text-muted">
+                    {stat.label}
+                  </span>
+                </button>
+              ) : (
+                <div
+                  key={stat.label}
+                  className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-soft bg-surface px-3 py-1"
+                >
+                  <span
+                    className={cn(
+                      "font-mono text-[15px] font-extrabold",
+                      stat.color,
+                    )}
+                  >
+                    {stat.val}
+                  </span>
+                  <span className="text-[10px] font-medium text-muted">
+                    {stat.label}
+                  </span>
+                </div>
+              ),
+            )}
           </div>
         </div>
       </header>
@@ -242,14 +315,14 @@ export function ProductDashboardView({
             ))}
           </div>
 
-          {selected.size > 0 && (
+          {selectedIds.length > 0 && (
             <button
               type="button"
-              onClick={() => setSelected(new Set())}
+              onClick={clearSelected}
               className="inline-flex h-9.25 items-center gap-1.5 rounded-lg border border-danger-soft bg-danger-soft px-3.25 text-[12px] font-semibold text-danger cursor-pointer"
             >
               <FiX className="h-3.5 w-3.5" />
-              Clear {selected.size}
+              Clear {selectedIds.length}
             </button>
           )}
         </div>
@@ -286,9 +359,9 @@ export function ProductDashboardView({
                     <GridCard
                       key={product.id}
                       product={product}
-                      selected={selected.has(product.id)}
-                      favorited={favorites.has(product.id)}
-                      onSelect={toggleSelect}
+                      selected={selectedSet.has(product.id)}
+                      favorited={favoriteSet.has(product.id)}
+                      onSelect={toggleSelected}
                       onFavorite={toggleFavorite}
                     />
                   ))}
@@ -330,9 +403,9 @@ export function ProductDashboardView({
                         <TableRow
                           key={product.id}
                           product={product}
-                          selected={selected.has(product.id)}
-                          favorited={favorites.has(product.id)}
-                          onSelect={toggleSelect}
+                          selected={selectedSet.has(product.id)}
+                          favorited={favoriteSet.has(product.id)}
+                          onSelect={toggleSelected}
                           onFavorite={toggleFavorite}
                         />
                       ))}
