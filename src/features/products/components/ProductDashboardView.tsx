@@ -1,20 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
 import { FiGrid, FiList, FiPackage, FiSearch, FiStar, FiX } from "react-icons/fi";
 import { Pagination } from "../../../components/Pagination";
 import { CATEGORIES } from "../types";
-import type { Category, Product } from "../types";
+import type { Product } from "../types";
 import { EmptyState } from "../components/EmptyState";
 import { ErrorState } from "../components/ErrorState";
 import { GridCard } from "../components/GridCard";
 import { LoadingState } from "../components/LoadingState";
 import { TableRow } from "../components/TableRow";
-import { useFavoritesStore } from "../../../store/favoritesStore";
+import { useProductDashboardState } from "../hooks/useProductDashboardState";
 import { cn } from "../../../utils/cn";
-
-const PAGE_SIZE = 24;
-
-type SortKey = "title" | "price_asc" | "price_desc";
-type ViewMode = "grid" | "table";
 
 interface ProductDashboardViewProps {
   products: Product[];
@@ -29,95 +23,34 @@ export function ProductDashboardView({
   isError,
   onRetry,
 }: ProductDashboardViewProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<Category | "All">("All");
-  const [sortBy, setSortBy] = useState<SortKey>("title");
-  const [page, setPage] = useState(1);
-  const [favoritesOnly, setFavoritesOnly] = useState(false);
-  const [selectedOnly, setSelectedOnly] = useState(false);
-  const favoriteIds = useFavoritesStore((state) => state.favoriteIds);
-  const selectedIds = useFavoritesStore((state) => state.selectedIds);
-  const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
-  const toggleSelected = useFavoritesStore((state) => state.toggleSelected);
-  const clearSelected = useFavoritesStore((state) => state.clearSelected);
-  const favoriteSet = useMemo(() => new Set(favoriteIds), [favoriteIds]);
-  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
-
-  useEffect(() => {
-    if (favoriteIds.length === 0) setFavoritesOnly(false);
-  }, [favoriteIds.length]);
-
-  useEffect(() => {
-    if (selectedIds.length === 0) setSelectedOnly(false);
-  }, [selectedIds.length]);
-
-  const catCounts = useMemo<Record<Category, number>>(() => {
-    const counts: Record<Category, number> = {
-      Electronics: 0,
-      Fashion: 0,
-      Home: 0,
-      Sports: 0,
-      Beauty: 0,
-      Books: 0,
-    };
-    for (const product of products) counts[product.category] += 1;
-    return counts;
-  }, [products]);
-
-  const filtered = useMemo(() => {
-    const query = search.toLowerCase();
-    return products
-      .filter(
-        (product) =>
-          (!favoritesOnly || favoriteSet.has(product.id)) &&
-          (!selectedOnly || selectedSet.has(product.id)) &&
-          (category === "All" || product.category === category) &&
-          (product.title.toLowerCase().includes(query) ||
-            product.id.includes(query)),
-      )
-      .sort((a, b) => {
-        if (sortBy === "title") return a.title.localeCompare(b.title);
-        if (sortBy === "price_asc") return a.price - b.price;
-        return b.price - a.price;
-      });
-  }, [
-    products,
+  const {
+    viewMode,
+    setViewMode,
     search,
     category,
     sortBy,
     favoritesOnly,
     selectedOnly,
+    favoriteIds,
+    selectedIds,
     favoriteSet,
     selectedSet,
-  ]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const paginated = filtered.slice(
-    (safePage - 1) * PAGE_SIZE,
-    safePage * PAGE_SIZE,
-  );
-
-  const handleSearch = (value: string) => {
-    setSearch(value);
-    setPage(1);
-  };
-
-  const handleCategory = (value: Category | "All") => {
-    setCategory(value);
-    setPage(1);
-  };
-
-  const handleSort = (value: SortKey) => {
-    setSortBy(value);
-    setPage(1);
-  };
-
-  const handlePageChange = (nextPage: number) => {
-    setPage(nextPage);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+    catCounts,
+    filtered,
+    totalPages,
+    safePage,
+    paginated,
+    pageSize,
+    handleSearch,
+    handleCategory,
+    handleSort,
+    toggleFavorite,
+    toggleSelected,
+    clearSelected,
+    toggleFavoritesOnly,
+    toggleSelectedOnly,
+    handlePageChange,
+  } = useProductDashboardState(products);
 
   return (
     <div className="min-h-screen bg-dashboard text-secondary">
@@ -155,10 +88,7 @@ export function ProductDashboardView({
                   type="button"
                   key={stat.label}
                   disabled={favoriteIds.length === 0}
-                  onClick={() => {
-                    setFavoritesOnly((prev) => !prev);
-                    setPage(1);
-                  }}
+                  onClick={toggleFavoritesOnly}
                   className={cn(
                     "flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-1",
                     favoritesOnly
@@ -186,10 +116,7 @@ export function ProductDashboardView({
                   type="button"
                   key={stat.label}
                   disabled={selectedIds.length === 0}
-                  onClick={() => {
-                    setSelectedOnly((prev) => !prev);
-                    setPage(1);
-                  }}
+                  onClick={toggleSelectedOnly}
                   className={cn(
                     "flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-1",
                     selectedOnly
@@ -289,7 +216,11 @@ export function ProductDashboardView({
 
           <select
             value={sortBy}
-            onChange={(event) => handleSort(event.target.value as SortKey)}
+            onChange={(event) =>
+              handleSort(
+                event.target.value as "title" | "price_asc" | "price_desc",
+              )
+            }
             className="h-9.25 min-w-42.5 rounded-lg border border-soft bg-surface-alt px-2.75 text-[13px] text-secondary outline-none cursor-pointer"
           >
             <option value="title">Sort: Title A → Z</option>
@@ -433,7 +364,7 @@ export function ProductDashboardView({
               currentPage={safePage}
               totalPages={totalPages}
               totalItems={filtered.length}
-              pageSize={PAGE_SIZE}
+              pageSize={pageSize}
               onPageChange={handlePageChange}
             />
           )}
