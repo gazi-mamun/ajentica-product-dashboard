@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import {
-  FiAlertTriangle,
   FiCheck,
   FiGrid,
   FiList,
@@ -14,6 +13,7 @@ import { useProducts } from "../hooks/useProducts";
 import type { Category, Product } from "../types";
 import { CATEGORIES } from "../types";
 import { CategoryPill } from "../components/CategoryPill";
+import { ErrorState } from "../components/ErrorState";
 import { LoadingState } from "../components/LoadingState";
 import { ProductImg } from "../components/ProductImg";
 import { cn } from "../../../utils/cn";
@@ -188,7 +188,7 @@ function TableRow({
 }
 
 export function ProductDashboard() {
-  const { data, isLoading, isError } = useProducts();
+  const { data, isLoading, isError, refetch } = useProducts();
 
   const products = useMemo<Product[]>(() => {
     if (!data) return [];
@@ -454,19 +454,7 @@ export function ProductDashboard() {
             </div>
           </div>
 
-          {isError && (
-            <div className="px-5 py-12 text-center">
-              <div className="mb-2.5 flex justify-center text-danger">
-                <FiAlertTriangle className="h-8 w-8" />
-              </div>
-              <div className="text-[14px] font-bold text-danger">
-                Failed to load products
-              </div>
-              <div className="mt-1 text-[12px] text-dim">
-                Check your network and try again
-              </div>
-            </div>
-          )}
+          {isError && <ErrorState onRetry={refetch} />}
 
           {isLoading && <LoadingState />}
 
