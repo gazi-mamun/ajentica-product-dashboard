@@ -4,8 +4,8 @@ import type { Product } from "../types";
 import { DashboardHeader } from "../components/DashboardHeader";
 import { EmptyState } from "../components/EmptyState";
 import { ErrorState } from "../components/ErrorState";
-import { GridCard } from "../components/GridCard";
 import { LoadingState } from "../components/LoadingState";
+import { ProductVirtualGrid } from "../components/ProductVirtualGrid";
 import { TableRow } from "../components/TableRow";
 import { useProductDashboardState } from "../hooks/useProductDashboardState";
 import { cn } from "../../../utils/cn";
@@ -184,20 +184,15 @@ export function ProductDashboardView({
           {isLoading && <LoadingState />}
 
           {!isLoading && !isError && (
-            <div className={viewMode === "grid" ? "p-4" : ""}>
+            <div>
               {viewMode === "grid" ? (
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3.25">
-                  {filtered.map((product) => (
-                    <GridCard
-                      key={product.id}
-                      product={product}
-                      selected={selectedSet.has(product.id)}
-                      favorited={favoriteSet.has(product.id)}
-                      onSelect={toggleSelected}
-                      onFavorite={toggleFavorite}
-                    />
-                  ))}
-                </div>
+                <ProductVirtualGrid
+                  products={filtered}
+                  favoriteSet={favoriteSet}
+                  selectedSet={selectedSet}
+                  onToggleFavorite={toggleFavorite}
+                  onToggleSelected={toggleSelected}
+                />
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse text-[13px]">
