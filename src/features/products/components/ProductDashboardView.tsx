@@ -1,4 +1,4 @@
-import { FiGrid, FiList, FiSearch, FiStar, FiX } from "react-icons/fi";
+import { FiGrid, FiList, FiSearch, FiX } from "react-icons/fi";
 import { CATEGORIES } from "../types";
 import type { Product } from "../types";
 import { DashboardHeader } from "../components/DashboardHeader";
@@ -6,7 +6,7 @@ import { EmptyState } from "../components/EmptyState";
 import { ErrorState } from "../components/ErrorState";
 import { LoadingState } from "../components/LoadingState";
 import { ProductVirtualGrid } from "../components/ProductVirtualGrid";
-import { TableRow } from "../components/TableRow";
+import { ProductVirtualTable } from "../components/ProductVirtualTable";
 import { useProductDashboardState } from "../hooks/useProductDashboardState";
 import { cn } from "../../../utils/cn";
 
@@ -194,51 +194,13 @@ export function ProductDashboardView({
                   onToggleSelected={toggleSelected}
                 />
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse text-[13px]">
-                    <thead>
-                      <tr className="border-b border-strong">
-                        {[
-                          { key: "select", content: "" },
-                          { key: "product", content: "Product" },
-                          { key: "category", content: "Category" },
-                          { key: "price", content: "Price" },
-                          {
-                            key: "favorite",
-                            content: <FiStar className="mx-auto h-3.5 w-3.5" />,
-                          },
-                        ].map((header) => (
-                          <th
-                            key={header.key}
-                            className={cn(
-                              "whitespace-nowrap px-3.5 py-2.75 text-[10px] font-bold uppercase tracking-widest text-dim",
-                              header.key === "price"
-                                ? "text-right"
-                                : header.key === "select" ||
-                                    header.key === "favorite"
-                                  ? "text-center"
-                                  : "text-left",
-                            )}
-                          >
-                            {header.content}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filtered.map((product) => (
-                        <TableRow
-                          key={product.id}
-                          product={product}
-                          selected={selectedSet.has(product.id)}
-                          favorited={favoriteSet.has(product.id)}
-                          onSelect={toggleSelected}
-                          onFavorite={toggleFavorite}
-                        />
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <ProductVirtualTable
+                  products={filtered}
+                  favoriteSet={favoriteSet}
+                  selectedSet={selectedSet}
+                  onToggleFavorite={toggleFavorite}
+                  onToggleSelected={toggleSelected}
+                />
               )}
 
               {filtered.length === 0 && (
