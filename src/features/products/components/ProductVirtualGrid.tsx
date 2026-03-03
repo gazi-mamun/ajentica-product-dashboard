@@ -11,14 +11,16 @@ interface ProductVirtualGridProps {
   onToggleSelected: (id: string) => void;
 }
 
-const ROW_HEIGHT = 260;
-const GRID_GAP = 13;
+const ESTIMATED_ROW_HEIGHT = 280;
+const ROW_GAP = 13;
+const COLUMN_GAP = 13;
+const MIN_CARD_WIDTH = 200;
 
 function getColumnCount(width: number): number {
-  if (width < 520) return 1;
-  if (width < 860) return 2;
-  if (width < 1160) return 3;
-  return 4;
+  return Math.max(
+    1,
+    Math.floor((width + COLUMN_GAP) / (MIN_CARD_WIDTH + COLUMN_GAP)),
+  );
 }
 
 export function ProductVirtualGrid({
@@ -54,10 +56,14 @@ export function ProductVirtualGrid({
 
   const rowVirtualizer = useWindowVirtualizer({
     count: rowCount,
-    estimateSize: () => ROW_HEIGHT,
+    estimateSize: () => ESTIMATED_ROW_HEIGHT + ROW_GAP,
     overscan: 6,
     scrollMargin,
   });
+
+  useEffect(() => {
+    rowVirtualizer.measure();
+  }, [rowVirtualizer, columns, products.length]);
 
   const rowItems = rowVirtualizer.getVirtualItems();
 
@@ -75,13 +81,16 @@ export function ProductVirtualGrid({
           return (
             <div
               key={virtualRow.key}
+              ref={rowVirtualizer.measureElement}
               className="absolute left-0 top-0 w-full"
               style={{
-                height: `${virtualRow.size}px`,
                 transform: `translateY(${virtualRow.start - scrollMargin}px)`,
                 display: "grid",
-                gridTemplateColumns: `repeat(${columns}, minmax(200px, 1fr))`,
-                gap: `${GRID_GAP}px`,
+                gridTemplateColumns: `repeat(${columns}, minmax(${MIN_CARD_WIDTH}px, 1fr))`,
+                columnGap: `${COLUMN_GAP}px`,
+                alignItems: "start",
+                paddingBottom: `${ROW_GAP}px`,
+                boxSizing: "border-box",
               }}
             >
               {rowProducts.map((product) => (
