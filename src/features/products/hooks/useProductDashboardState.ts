@@ -10,6 +10,7 @@ type ViewMode = "grid" | "table";
 export function useProductDashboardState(products: Product[]) {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [category, setCategory] = useState<Category | "All">("All");
   const [sortBy, setSortBy] = useState<SortKey>("title");
   const [page, setPage] = useState(1);
@@ -33,6 +34,14 @@ export function useProductDashboardState(products: Product[]) {
     if (selectedIds.length === 0) setSelectedOnly(false);
   }, [selectedIds.length]);
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
   const catCounts = useMemo<Record<Category, number>>(() => {
     const counts: Record<Category, number> = {
       Electronics: 0,
@@ -47,7 +56,7 @@ export function useProductDashboardState(products: Product[]) {
   }, [products]);
 
   const filtered = useMemo(() => {
-    const query = search.toLowerCase();
+    const query = debouncedSearch.toLowerCase();
     return products
       .filter(
         (product) =>
@@ -64,7 +73,7 @@ export function useProductDashboardState(products: Product[]) {
       });
   }, [
     products,
-    search,
+    debouncedSearch,
     category,
     sortBy,
     favoritesOnly,
