@@ -13,6 +13,7 @@ import { useProducts } from "../hooks/useProducts";
 import type { Category, Product } from "../types";
 import { CATEGORIES } from "../types";
 import { CategoryPill } from "../components/CategoryPill";
+import { EmptyState } from "../components/EmptyState";
 import { ErrorState } from "../components/ErrorState";
 import { LoadingState } from "../components/LoadingState";
 import { ProductImg } from "../components/ProductImg";
@@ -522,17 +523,10 @@ export function ProductDashboard() {
               )}
 
               {filtered.length === 0 && (
-                <div className="px-5 py-13 text-center">
-                  <div className="mb-2.5 flex justify-center text-dim">
-                    <FiSearch className="h-8.5 w-8.5" />
-                  </div>
-                  <div className="mb-1 text-[14px] font-bold text-dim">
-                    No products found
-                  </div>
-                  <div className="text-[12px] text-dim">
-                    Try adjusting your search or category filter
-                  </div>
-                </div>
+                <EmptyState
+                  title="No products found"
+                  description="Try adjusting your search or category filter"
+                />
               )}
             </div>
           )}
