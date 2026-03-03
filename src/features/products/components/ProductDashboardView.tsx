@@ -1,7 +1,8 @@
-import { FiGrid, FiList, FiPackage, FiSearch, FiStar, FiX } from "react-icons/fi";
+import { FiGrid, FiList, FiSearch, FiStar, FiX } from "react-icons/fi";
 import { Pagination } from "../../../components/Pagination";
 import { CATEGORIES } from "../types";
 import type { Product } from "../types";
+import { DashboardHeader } from "../components/DashboardHeader";
 import { EmptyState } from "../components/EmptyState";
 import { ErrorState } from "../components/ErrorState";
 import { GridCard } from "../components/GridCard";
@@ -52,115 +53,24 @@ export function ProductDashboardView({
     handlePageChange,
   } = useProductDashboardState(products);
 
+  const handlePageChangeWithScroll = (nextPage: number) => {
+    handlePageChange(nextPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen bg-dashboard text-secondary">
-      <header className="sticky top-0 z-100 border-b border-header bg-header backdrop-blur-[14px]">
-        <div className="screen-layout flex flex-col gap-2.5 px-4 py-3 sm:px-6 md:h-15 md:flex-row md:items-center md:justify-between md:py-0">
-          <div className="flex min-w-0 items-center gap-2.75">
-            <div className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-brand-gradient text-base shadow-brand">
-              <FiPackage className="h-4 w-4" />
-            </div>
-            <div>
-              <div className="text-[15px] font-extrabold tracking-[-0.02em] text-primary">
-                Product Dashboard
-              </div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-dim">
-                Inventory · {products.length} items
-              </div>
-            </div>
-          </div>
-
-          <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
-            {isLoading && (
-              <div className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-dim border-t-info" />
-            )}
-            {[
-              { label: "Total", val: filtered.length, color: "text-info" },
-              {
-                label: "Favorites",
-                val: favoriteIds.length,
-                color: "text-warning",
-              },
-              { label: "Selected", val: selectedIds.length, color: "text-selected" },
-            ].map((stat) =>
-              stat.label === "Favorites" ? (
-                <button
-                  type="button"
-                  key={stat.label}
-                  disabled={favoriteIds.length === 0}
-                  onClick={toggleFavoritesOnly}
-                  className={cn(
-                    "flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-1",
-                    favoritesOnly
-                      ? "border-warning-soft bg-warning-soft"
-                      : "border-soft bg-surface",
-                    favoriteIds.length === 0
-                      ? "cursor-not-allowed opacity-60"
-                      : "cursor-pointer",
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "font-mono text-[15px] font-extrabold",
-                      stat.color,
-                    )}
-                  >
-                    {stat.val}
-                  </span>
-                  <span className="text-[10px] font-medium text-muted">
-                    {stat.label}
-                  </span>
-                </button>
-              ) : stat.label === "Selected" ? (
-                <button
-                  type="button"
-                  key={stat.label}
-                  disabled={selectedIds.length === 0}
-                  onClick={toggleSelectedOnly}
-                  className={cn(
-                    "flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-1",
-                    selectedOnly
-                      ? "border-info-soft bg-info-soft"
-                      : "border-soft bg-surface",
-                    selectedIds.length === 0
-                      ? "cursor-not-allowed opacity-60"
-                      : "cursor-pointer",
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "font-mono text-[15px] font-extrabold",
-                      stat.color,
-                    )}
-                  >
-                    {stat.val}
-                  </span>
-                  <span className="text-[10px] font-medium text-muted">
-                    {stat.label}
-                  </span>
-                </button>
-              ) : (
-                <div
-                  key={stat.label}
-                  className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-soft bg-surface px-3 py-1"
-                >
-                  <span
-                    className={cn(
-                      "font-mono text-[15px] font-extrabold",
-                      stat.color,
-                    )}
-                  >
-                    {stat.val}
-                  </span>
-                  <span className="text-[10px] font-medium text-muted">
-                    {stat.label}
-                  </span>
-                </div>
-              ),
-            )}
-          </div>
-        </div>
-      </header>
+      <DashboardHeader
+        productsCount={products.length}
+        isLoading={isLoading}
+        filteredCount={filtered.length}
+        favoriteCount={favoriteIds.length}
+        selectedCount={selectedIds.length}
+        favoritesOnly={favoritesOnly}
+        selectedOnly={selectedOnly}
+        onToggleFavoritesOnly={toggleFavoritesOnly}
+        onToggleSelectedOnly={toggleSelectedOnly}
+      />
 
       <main className="screen-layout flex flex-col gap-3.5 px-6 py-5.5">
         <div className="flex flex-wrap gap-1.75">
@@ -365,7 +275,7 @@ export function ProductDashboardView({
               totalPages={totalPages}
               totalItems={filtered.length}
               pageSize={pageSize}
-              onPageChange={handlePageChange}
+              onPageChange={handlePageChangeWithScroll}
             />
           )}
         </div>

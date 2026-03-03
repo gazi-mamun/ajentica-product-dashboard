@@ -107,7 +107,6 @@ export function useProductDashboardState(products: Product[]) {
 
   const handlePageChange = (nextPage: number) => {
     setPage(nextPage);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return {
