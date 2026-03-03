@@ -1,20 +1,19 @@
-import { useEffect } from "react";
-import { useProducts } from "./features/products/hooks/useProducts";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ProductDashboard } from "./features/products/components/Productdashboard";
 
-function App() {
-  const { data, isLoading, error } = useProducts();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 min
+      retry: 2,
+    },
+  },
+});
 
-  useEffect(() => {
-    if (data) {
-      console.log("normalized products:", data); // { byId, allIds }
-      console.log("first product:", data.byId[data.allIds[0]]);
-    }
-  }, [data]);
-
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Failed to load products</div>;
-
-  return <div>Products loaded</div>;
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ProductDashboard />
+    </QueryClientProvider>
+  );
 }
-
-export default App;

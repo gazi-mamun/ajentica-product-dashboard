@@ -6,7 +6,7 @@ export type Category =
   | 'Beauty'
   | 'Books';
 
-export const CATEGORIES: Category[] = [
+export const CATEGORIES: readonly Category[] = [
   'Electronics',
   'Fashion',
   'Home',
