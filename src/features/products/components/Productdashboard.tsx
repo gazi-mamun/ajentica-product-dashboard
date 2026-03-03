@@ -1,192 +1,19 @@
 import { useMemo, useState } from "react";
-import {
-  FiCheck,
-  FiGrid,
-  FiList,
-  FiPackage,
-  FiSearch,
-  FiStar,
-  FiX,
-} from "react-icons/fi";
-import { IoStar } from "react-icons/io5";
+import { FiGrid, FiList, FiPackage, FiSearch, FiStar, FiX } from "react-icons/fi";
 import { useProducts } from "../hooks/useProducts";
 import type { Category, Product } from "../types";
 import { CATEGORIES } from "../types";
-import { CategoryPill } from "../components/CategoryPill";
 import { EmptyState } from "../components/EmptyState";
 import { ErrorState } from "../components/ErrorState";
+import { GridCard } from "../components/GridCard";
 import { LoadingState } from "../components/LoadingState";
-import { ProductImg } from "../components/ProductImg";
+import { TableRow } from "../components/TableRow";
 import { cn } from "../../../utils/cn";
 
 const PAGE_SIZE = 24;
 
 type SortKey = "title" | "price_asc" | "price_desc";
 type ViewMode = "grid" | "table";
-
-interface GridCardProps {
-  product: Product;
-  selected: boolean;
-  favorited: boolean;
-  onSelect: (id: string) => void;
-  onFavorite: (id: string) => void;
-}
-
-function GridCard({
-  product,
-  selected,
-  favorited,
-  onSelect,
-  onFavorite,
-}: GridCardProps) {
-  return (
-    <div
-      onClick={() => onSelect(product.id)}
-      className={cn(
-        "group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border-[1.5px] bg-card-gradient transition-all duration-200",
-        "hover:-translate-y-0.5 hover:border-card-hover hover:bg-card-gradient-hover",
-        selected ? "border-info shadow-brand-soft" : "border-card shadow-card",
-      )}
-    >
-      <div className="relative h-40 overflow-hidden bg-card-media">
-        <img
-          src={product.image}
-          alt={product.title}
-          className="block h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.07]"
-        />
-        <div className="pointer-events-none absolute inset-0 bg-image-overlay" />
-
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            onFavorite(product.id);
-          }}
-          className={cn(
-            "absolute right-2.25 top-2.25 flex h-7.5 w-7.5 items-center justify-center rounded-[7px] border text-[15px] backdrop-blur-[6px] transition-all duration-150 cursor-pointer",
-            favorited
-              ? "border-warning-soft bg-warning-soft text-warning scale-[1.12]"
-              : "border-transparent bg-overlay-dark text-info",
-          )}
-        >
-          {favorited ? (
-            <IoStar className="h-4 w-4" />
-          ) : (
-            <FiStar className="h-4 w-4" />
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            onSelect(product.id);
-          }}
-          className={cn(
-            "absolute left-2.25 top-2.25 flex h-5 w-5 items-center justify-center rounded-md border-2 backdrop-blur-[6px] transition-all duration-150",
-            selected
-              ? "border-info bg-current text-info"
-              : "border-overlay bg-overlay-dark",
-          )}
-        >
-          {selected && <FiCheck className="h-3 w-3 text-check" />}
-        </button>
-      </div>
-
-      <div className="flex flex-1 flex-col gap-1.75 p-[12px_14px_14px]">
-        <CategoryPill category={product.category} />
-        <div className="flex-1 text-[13px] font-bold leading-[1.35] text-secondary">
-          {product.title}
-        </div>
-        <div className="mt-0.5 flex items-center justify-between border-t border-soft pt-2.25">
-          <span className="font-mono text-[18px] font-extrabold tracking-[-0.02em] text-info">
-            ${product.price.toFixed(2)}
-          </span>
-          <span className="font-mono text-[10px] text-dim">#{product.id}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface TableRowProps {
-  product: Product;
-  selected: boolean;
-  favorited: boolean;
-  onSelect: (id: string) => void;
-  onFavorite: (id: string) => void;
-}
-
-function TableRow({
-  product,
-  selected,
-  favorited,
-  onSelect,
-  onFavorite,
-}: TableRowProps) {
-  return (
-    <tr
-      onClick={() => onSelect(product.id)}
-      className={cn(
-        "cursor-pointer border-b border-strong transition-colors duration-150 hover:bg-row-hover",
-        selected && "bg-info-soft",
-      )}
-    >
-      <td className="w-10 px-3.5 py-2.5">
-        <div
-          className={cn(
-            "flex h-4.25 w-4.25 items-center justify-center rounded-[5px] border-2 transition-all duration-150",
-            selected
-              ? "border-info bg-current text-info"
-              : "border-dim bg-transparent",
-          )}
-        >
-          {selected && <FiCheck className="h-3 w-3 text-check" />}
-        </div>
-      </td>
-      <td className="px-3.5 py-2.5">
-        <div className="flex items-center gap-2.75">
-          <ProductImg src={product.image} alt={product.title} size={42} />
-          <div>
-            <div className="text-[13px] font-bold text-secondary">
-              {product.title}
-            </div>
-            <div className="mt-px font-mono text-[10px] text-dim">
-              #{product.id}
-            </div>
-          </div>
-        </div>
-      </td>
-      <td className="px-3.5 py-2.5">
-        <CategoryPill category={product.category} />
-      </td>
-      <td className="px-3.5 py-2.5 text-right">
-        <span className="font-mono text-[15px] font-extrabold text-info">
-          ${product.price.toFixed(2)}
-        </span>
-      </td>
-      <td className="px-3.5 py-2.5 text-center">
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            onFavorite(product.id);
-          }}
-          className={cn(
-            "border-none bg-transparent text-[17px] transition-transform duration-150 cursor-pointer",
-            favorited ? "scale-[1.15] text-warning" : "text-dim",
-          )}
-        >
-          {favorited ? (
-            <IoStar className="h-4 w-4" />
-          ) : (
-            <FiStar className="h-4 w-4" />
-          )}
-        </button>
-      </td>
-    </tr>
-  );
-}
 
 export function ProductDashboard() {
   const { data, isLoading, isError, refetch } = useProducts();
@@ -289,8 +116,8 @@ export function ProductDashboard() {
   return (
     <div className="min-h-screen bg-dashboard text-secondary">
       <header className="sticky top-0 z-100 border-b border-header bg-header backdrop-blur-[14px]">
-        <div className="screen-layout flex h-15 items-center justify-between px-6">
-          <div className="flex items-center gap-2.75">
+        <div className="screen-layout flex flex-col gap-2.5 px-4 py-3 sm:px-6 md:h-15 md:flex-row md:items-center md:justify-between md:py-0">
+          <div className="flex min-w-0 items-center gap-2.75">
             <div className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-brand-gradient text-base shadow-brand">
               <FiPackage className="h-4 w-4" />
             </div>
@@ -304,9 +131,9 @@ export function ProductDashboard() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
             {isLoading && (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-dim border-t-info" />
+              <div className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-dim border-t-info" />
             )}
             {[
               { label: "Total", val: filtered.length, color: "text-info" },
@@ -319,7 +146,7 @@ export function ProductDashboard() {
             ].map((stat) => (
               <div
                 key={stat.label}
-                className="flex items-center gap-1.5 rounded-lg border border-soft bg-surface px-3 py-1"
+                className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-soft bg-surface px-3 py-1"
               >
                 <span
                   className={cn(
