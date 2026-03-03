@@ -1,4 +1,4 @@
-# Product Management Dashboard
+# Product Management Dashboard (for Ajentica)
 
 React + TypeScript product dashboard for browsing, filtering, selecting, and favoriting products from local mock data.
 
@@ -55,6 +55,12 @@ npm run preview
 - Image handling:
   - Stable seeded image URLs from Picsum
   - Image fallback initials for failed images (`ProductImg`)
+
+### UI styling and dependency strategy
+
+- Styling: Tailwind CSS (utility-first approach with project-specific tokens/utilities in `src/index.css`)
+- UI components: built with project-owned React components (no external UI component library)
+- Utility helpers: small helpers are kept in-repo (`src/utils`) to avoid extra npm dependencies where practical
 
 ## Branch / Version Notes
 
