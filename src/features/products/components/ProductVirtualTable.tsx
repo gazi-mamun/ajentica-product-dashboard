@@ -32,14 +32,14 @@ function ProductVirtualTableComponent({
   const rowVirtualizer = useWindowVirtualizer({
     count: products.length,
     estimateSize: () => ROW_HEIGHT,
-    overscan: 10,
+    overscan: 20,
     scrollMargin,
   });
 
   const virtualRows = rowVirtualizer.getVirtualItems();
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto bg-panel">
       <div className="min-w-190">
         {/* Fixed header remains always visible while body rows are virtualized below. */}
         <div
@@ -72,9 +72,9 @@ function ProductVirtualTableComponent({
           ))}
         </div>
 
-        <div ref={bodyRef}>
+        <div ref={bodyRef} className="bg-panel">
           <div
-            className="relative w-full"
+            className="relative w-full bg-panel"
             style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
           >
             {virtualRows.map((virtualRow) => {

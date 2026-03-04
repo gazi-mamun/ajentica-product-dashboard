@@ -60,7 +60,7 @@ function ProductVirtualGridComponent({
   const rowVirtualizer = useWindowVirtualizer({
     count: rowCount,
     estimateSize: () => ESTIMATED_ROW_HEIGHT + ROW_GAP,
-    overscan: 6,
+    overscan: 50,
     scrollMargin,
   });
 
@@ -72,9 +72,9 @@ function ProductVirtualGridComponent({
   const rowItems = rowVirtualizer.getVirtualItems();
 
   return (
-    <div ref={containerRef} className="p-4">
+    <div ref={containerRef} className="bg-panel p-4">
       <div
-        className="relative w-full"
+        className="relative w-full bg-panel"
         style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
       >
         {rowItems.map((virtualRow) => {
@@ -96,6 +96,7 @@ function ProductVirtualGridComponent({
                 alignItems: "start",
                 paddingBottom: `${ROW_GAP}px`,
                 boxSizing: "border-box",
+                backgroundColor: "transparent",
               }}
             >
               {rowProducts.map((product) => (
